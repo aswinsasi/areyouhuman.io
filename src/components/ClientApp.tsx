@@ -8,6 +8,7 @@ import WaveformDisplay from "./WaveformDisplay";
 import CoherenceRing from "./CoherenceRing";
 import Fingerprint from "./Fingerprint";
 import BotComparison from "./BotComparison";
+import HowItWorks from "./HowItWorks";
 import ShareCard from "./ShareCard";
 import { CHANNELS, STATUS_MESSAGES, COLORS } from "@/lib/constants";
 import { trackEvent } from "@/lib/analytics";
@@ -176,9 +177,11 @@ export default function ClientApp() {
         ))}
       </section>
 
+      {/* How It Works + FAQ */}
+      <HowItWorks />
+
       {/* CTA */}
-      {analysis.phase === "complete" && (
-        <section className="text-center mb-12">
+      <section className="text-center mb-12">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a href="https://github.com/AreYouHuman/sdk" target="_blank" rel="noopener noreferrer"
               onClick={() => { trackEvent("cta_sdk"); if (!muted) feedbackClick(); }}
@@ -194,7 +197,6 @@ export default function ClientApp() {
             </a>
           </div>
         </section>
-      )}
 
       {/* Footer */}
       <footer className="text-center py-6 border-t" style={{ borderColor: "#1A2030" }}>
