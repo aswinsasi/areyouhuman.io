@@ -62,7 +62,7 @@ export default function SDKDocs() {
           <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ backgroundColor: COLORS.green + "15", color: COLORS.green }}>SDK</span>
         </div>
         <div className="flex items-center gap-3">
-          <a href="https://github.com/aswinsasi/areyouhuman-sdk" target="_blank" rel="noopener noreferrer"
+          <a href="https://github.com/AreYouHuman/sdk" target="_blank" rel="noopener noreferrer"
             className="text-xs font-mono px-3 py-1.5 rounded-lg transition-all hover:brightness-125"
             style={{ backgroundColor: "#1A2030", color: "#E0E8F0", border: "1px solid #2A3040" }}>GitHub ↗</a>
           <a href="https://www.npmjs.com/package/@areyouhuman/sdk" target="_blank" rel="noopener noreferrer"
@@ -426,7 +426,7 @@ export function CheckoutButton() {
             <h3 className="font-display font-bold text-sm mb-2 text-cyber-text">Need help integrating?</h3>
             <p className="text-xs font-mono mb-4" style={{ color: "#667788" }}>Join the community or reach out to the team.</p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
-              <a href="https://github.com/aswinsasi/areyouhuman-sdk/sdk/issues" target="_blank" rel="noopener noreferrer"
+              <a href="https://github.com/AreYouHuman/sdk/issues" target="_blank" rel="noopener noreferrer"
                 className="px-4 py-2 rounded-lg font-mono text-xs font-bold hover:brightness-125"
                 style={{ backgroundColor: "#1A2030", color: "#E0E8F0", border: "1px solid #2A3040" }}>GitHub Issues</a>
               <a href="https://discord.gg/areyouhuman" target="_blank" rel="noopener noreferrer"

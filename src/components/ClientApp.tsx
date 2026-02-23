@@ -52,9 +52,16 @@ export default function ClientApp() {
     score: analysis.scores[ch.key as keyof typeof analysis.scores],
   }));
 
-  const handleWaitlist = (e: React.FormEvent) => {
+  const handleWaitlist = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!waitlistEmail) return;
+    try {
+      await fetch("/api/v1/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: waitlistEmail, source: "homepage" }),
+      });
+    } catch { /* ignore */ }
     trackEvent("cta_sdk", { email: waitlistEmail });
     setWaitlistSubmitted(true);
     if (!muted) feedbackClick();
@@ -247,7 +254,7 @@ export default function ClientApp() {
             style={{ backgroundColor: COLORS.cyan + "20", color: COLORS.cyan, border: `1px solid ${COLORS.cyan}40` }}>
             Get the SDK →
           </a>
-          <a href="https://github.com/aswinsasi/areyouhuman.io" target="_blank" rel="noopener noreferrer"
+          <a href="https://github.com/AreYouHuman" target="_blank" rel="noopener noreferrer"
             onClick={() => { trackEvent("cta_protocol"); if (!muted) feedbackClick(); }}
             className="px-6 py-3 rounded-lg font-mono text-sm font-bold transition-all hover:brightness-125"
             style={{ backgroundColor: "#1A2030", color: "#E0E8F0", border: "1px solid #2A3040" }}>
@@ -271,10 +278,11 @@ export default function ClientApp() {
       {/* Footer */}
       <footer className="text-center py-6 border-t" style={{ borderColor: "#1A2030" }} role="contentinfo">
         <nav className="flex items-center justify-center gap-4 mb-2" aria-label="Footer navigation">
+          <a href="/dashboard" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: COLORS.amber + "60" }}>Dashboard</a>
           <a href="/sdk" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: COLORS.cyan + "60" }}>SDK</a>
           <a href="/privacy" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: "#667788" }}>Privacy</a>
           <a href="/terms" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: "#667788" }}>Terms</a>
-          <a href="https://github.com/aswinsasi/areyouhuman.io" target="_blank" rel="noopener noreferrer" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: "#667788" }}>GitHub</a>
+          <a href="https://github.com/AreYouHuman" target="_blank" rel="noopener noreferrer" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: "#667788" }}>GitHub</a>
           <a href="https://www.npmjs.com/package/@areyouhuman/sdk" target="_blank" rel="noopener noreferrer" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: "#667788" }}>npm</a>
         </nav>
         <p className="text-[11px] font-mono text-cyber-muted">© 2026 HumanSign Protocol — Proving humanity through behavioral micro-signals</p>

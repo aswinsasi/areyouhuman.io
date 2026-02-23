@@ -71,10 +71,10 @@ const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "AreYouHuman",
-  url: "https://areyouhuman-io.vercel.app/",
-  logo: "https://areyouhuman-io.vercel.app/favicon.svg",
+  url: "https://areyouhuman.io",
+  logo: "https://areyouhuman.io/favicon.svg",
   sameAs: [
-    "https://github.com/aswinsasi/areyouhuman.io",
+    "https://github.com/AreYouHuman",
     "https://www.npmjs.com/package/@areyouhuman/sdk",
   ],
 };
