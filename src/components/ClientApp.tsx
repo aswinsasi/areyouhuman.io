@@ -183,7 +183,7 @@ export default function ClientApp() {
       {/* CTA */}
       <section className="text-center mb-12">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a href="https://github.com/AreYouHuman/sdk" target="_blank" rel="noopener noreferrer"
+            <a href="/sdk"
               onClick={() => { trackEvent("cta_sdk"); if (!muted) feedbackClick(); }}
               className="px-6 py-3 rounded-lg font-mono text-sm font-bold transition-all hover:brightness-125"
               style={{ backgroundColor: COLORS.cyan + "20", color: COLORS.cyan, border: `1px solid ${COLORS.cyan}40` }}>
