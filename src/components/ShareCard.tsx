@@ -5,8 +5,8 @@ import { ChannelScores } from "@/lib/signals";
 import { COLORS, CHANNELS } from "@/lib/constants";
 import { trackEvent } from "@/lib/analytics";
 
-export default function ShareCard({ score, channelScores, signalData }: {
-  score: number; channelScores: ChannelScores; signalData: number[][];
+export default function ShareCard({ score, channelScores, signalData, onShare }: {
+  score: number; channelScores: ChannelScores; signalData: number[][]; onShare?: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const displayScore = Math.round(score * 100);
@@ -22,7 +22,6 @@ export default function ShareCard({ score, channelScores, signalData }: {
 
     ctx.fillStyle = "#06080d"; ctx.fillRect(0, 0, W, H);
 
-    // Grid
     ctx.strokeStyle = "#00F0FF08"; ctx.lineWidth = 1;
     for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
     for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
@@ -44,7 +43,6 @@ export default function ShareCard({ score, channelScores, signalData }: {
       ctx.font = "bold 12px monospace"; ctx.fillText(`${Math.round(scoreValues[i] * 100)}%`, 460, y);
     });
 
-    // Fingerprint
     const fpCx = 850, fpCy = 280;
     [COLORS.cyan, COLORS.green, COLORS.magenta, COLORS.amber, COLORS.violet].forEach((color, li) => {
       const baseR = 50 + li * 30, data = signalData[li] || [];
@@ -66,6 +64,11 @@ export default function ShareCard({ score, channelScores, signalData }: {
 
   useEffect(() => { drawCard(); }, [drawCard]);
 
+  const handleAction = (action: () => void) => {
+    action();
+    onShare?.();
+  };
+
   const handleDownload = () => {
     const c = drawCard(); if (!c) return;
     const link = document.createElement("a"); link.download = `humansign-${displayScore}.png`; link.href = c.toDataURL("image/png"); link.click();
@@ -78,13 +81,13 @@ export default function ShareCard({ score, channelScores, signalData }: {
       <canvas ref={canvasRef} className="w-full rounded border mb-4" style={{ borderColor: "#1A2030" }} />
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
-          { label: "Share on 𝕏", color: "#1DA1F2", onClick: () => { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, "_blank"); trackEvent("share_twitter"); } },
-          { label: "LinkedIn", color: "#0A66C2", onClick: () => { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://areyouhuman.io")}`, "_blank"); trackEvent("share_linkedin"); } },
-          { label: "Copy Text", color: COLORS.cyan, onClick: () => { navigator.clipboard.writeText(shareText).catch(() => {}); trackEvent("share_copy"); } },
-          { label: "Save PNG", color: COLORS.green, onClick: handleDownload },
+          { label: "Share on 𝕏", color: "#1DA1F2", onClick: () => handleAction(() => { window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, "_blank"); trackEvent("share_twitter"); }) },
+          { label: "LinkedIn", color: "#0A66C2", onClick: () => handleAction(() => { window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://areyouhuman.io")}`, "_blank"); trackEvent("share_linkedin"); }) },
+          { label: "Copy Text", color: COLORS.cyan, onClick: () => handleAction(() => { navigator.clipboard.writeText(shareText).catch(() => {}); trackEvent("share_copy"); }) },
+          { label: "Save PNG", color: COLORS.green, onClick: () => handleAction(() => handleDownload()) },
         ].map((btn) => (
           <button key={btn.label} onClick={btn.onClick}
-            className="px-3 py-2.5 rounded-lg font-mono text-xs font-bold transition-all hover:brightness-125"
+            className="px-3 py-2.5 rounded-lg font-mono text-xs font-bold transition-all hover:brightness-125 active:scale-95"
             style={{ backgroundColor: btn.color + "20", color: btn.color, border: `1px solid ${btn.color}30` }}>
             {btn.label}
           </button>

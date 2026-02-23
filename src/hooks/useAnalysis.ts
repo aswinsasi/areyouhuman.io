@@ -6,6 +6,7 @@ import { ChannelScores, DisplayBuffers, emptyScores, emptyBuffers } from "@/lib/
 import { pointerJitter, scrollEntropy, keystrokeRhythm, microTremor, mobileTremor, crossChannelCoherence, humanScore, lerp, clamp } from "@/lib/math";
 import { ANALYSIS_DURATION_MS, DISPLAY_BUFFER_SIZE } from "@/lib/constants";
 import { trackEvent } from "@/lib/analytics";
+import { feedbackScanStart, feedbackComplete, sfxProgressPing } from "@/lib/sfx";
 
 export type AnalysisPhase = "idle" | "scanning" | "complete";
 
@@ -20,30 +21,18 @@ export interface AnalysisState {
   reset: () => void;
 }
 
-// Generate an animated waveform value based on score and time
-// Higher score = larger amplitude + more complex oscillation
-// Each channel has a unique frequency offset so they look different
 function animatedWaveform(score: number, time: number, channelOffset: number, rawVal: number): number {
   if (score < 0.003) return 0;
-
-  const amp = 0.15 + score * 0.5; // amplitude scales with score
+  const amp = 0.15 + score * 0.5;
   const freq1 = 2.5 + channelOffset * 0.7;
   const freq2 = 4.1 + channelOffset * 1.1;
   const freq3 = 7.3 + channelOffset * 0.5;
-
-  // Multi-frequency sine composition (looks organic)
   const wave = Math.sin(time * freq1) * 0.5
     + Math.sin(time * freq2 + channelOffset) * 0.3
     + Math.sin(time * freq3 + channelOffset * 2) * 0.2;
-
-  // Raw data adds irregular spikes
   const rawSpike = rawVal * 2;
-
-  // Center at score-proportional height, oscillate around it
   const center = 0.2 + score * 0.4;
-  const value = center + wave * amp * 0.4 + rawSpike * 0.15;
-
-  return clamp(value, 0.03, 0.95);
+  return clamp(center + wave * amp * 0.4 + rawSpike * 0.15, 0.03, 0.95);
 }
 
 export function useAnalysis(buffers: SignalBuffers): AnalysisState {
@@ -62,6 +51,7 @@ export function useAnalysis(buffers: SignalBuffers): AnalysisState {
   const startedRef = useRef(false);
   const phaseRef = useRef<AnalysisPhase>("idle");
   const frameRef = useRef(0);
+  const lastPingRef = useRef(0); // for progress sound spacing
 
   const pushBuf = (arr: number[], val: number) => {
     arr.push(val);
@@ -82,6 +72,7 @@ export function useAnalysis(buffers: SignalBuffers): AnalysisState {
           phaseRef.current = "scanning";
           setPhase("scanning");
           trackEvent("analysis_started");
+          feedbackScanStart();
         }
       }
     }
@@ -92,10 +83,10 @@ export function useAnalysis(buffers: SignalBuffers): AnalysisState {
     }
 
     const el = now - startTimeRef.current;
-    const time = el / 1000; // seconds for wave animation
+    const time = el / 1000;
     frameRef.current++;
 
-    // Raw instantaneous values
+    // Raw values
     const pRaw = pointerJitter(buffers.pointer.slice(-60));
     const sRaw = scrollEntropy(buffers.scroll.slice(-30));
     const kRaw = keystrokeRhythm(buffers.keystroke.slice(-20));
@@ -103,14 +94,14 @@ export function useAnalysis(buffers: SignalBuffers): AnalysisState {
       ? mobileTremor(buffers.motion.slice(-40))
       : microTremor(buffers.pointer.slice(-20));
 
-    // EMA smooth for score percentages
+    // EMA scores
     const sm = smRef.current;
     sm.pointer = lerp(sm.pointer, pRaw, 0.12);
     sm.scroll = lerp(sm.scroll, sRaw, 0.12);
     sm.keystroke = lerp(sm.keystroke, kRaw, 0.15);
     sm.tremor = lerp(sm.tremor, mRaw, 0.12);
 
-    // ANIMATED display waveforms — always oscillate when channel is active
+    // Animated display buffers
     const db = dbRef.current;
     pushBuf(db.pointer, animatedWaveform(sm.pointer, time, 0, pRaw));
     pushBuf(db.scroll, animatedWaveform(sm.scroll, time, 1.5, sRaw));
@@ -125,7 +116,7 @@ export function useAnalysis(buffers: SignalBuffers): AnalysisState {
     sm.coherence = lerp(sm.coherence, coh, 0.1);
     pushBuf(db.coherence, animatedWaveform(sm.coherence, time, 6.0, coh));
 
-    // Signal data for fingerprint
+    // Signal data
     const sd = sdRef.current;
     pushBuf(sd[0], sm.pointer);
     pushBuf(sd[1], sm.scroll);
@@ -133,12 +124,20 @@ export function useAnalysis(buffers: SignalBuffers): AnalysisState {
     pushBuf(sd[3], sm.tremor);
     pushBuf(sd[4], sm.coherence);
 
+    const progress = clamp(el / ANALYSIS_DURATION_MS, 0, 1);
     const overall = humanScore(
       { pointer: sm.pointer, scroll: sm.scroll, keystroke: sm.keystroke, tremor: sm.tremor },
       sm.coherence, el
     );
 
-    // Throttle React updates to ~20fps
+    // Progress ping every 15% (plays at ~15%, 30%, 45%, 60%, 75%, 90%)
+    const pingStep = Math.floor(progress / 0.15);
+    if (pingStep > lastPingRef.current && pingStep < 7) {
+      lastPingRef.current = pingStep;
+      sfxProgressPing(progress);
+    }
+
+    // Throttle React updates
     if (frameRef.current % 3 === 0) {
       setScores({ ...sm });
       setDisplayBuffers({
@@ -162,6 +161,7 @@ export function useAnalysis(buffers: SignalBuffers): AnalysisState {
       });
       setSignalData(sd.map((a) => [...a]));
       trackEvent("analysis_completed", { score: Math.round(overall * 100) });
+      feedbackComplete();
       return;
     }
 
@@ -181,6 +181,7 @@ export function useAnalysis(buffers: SignalBuffers): AnalysisState {
     startedRef.current = false;
     phaseRef.current = "idle";
     frameRef.current = 0;
+    lastPingRef.current = 0;
     setPhase("idle");
     setScores(emptyScores());
     setDisplayBuffers(emptyBuffers());

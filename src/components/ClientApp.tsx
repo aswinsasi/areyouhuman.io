@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSignalCapture } from "@/hooks/useSignalCapture";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { useDeviceMotion } from "@/hooks/useDeviceMotion";
@@ -11,12 +11,30 @@ import BotComparison from "./BotComparison";
 import ShareCard from "./ShareCard";
 import { CHANNELS, STATUS_MESSAGES, COLORS } from "@/lib/constants";
 import { trackEvent } from "@/lib/analytics";
+import { unlockAudio, feedbackReset, feedbackClick } from "@/lib/sfx";
 
 export default function ClientApp() {
   const buffers = useSignalCapture();
   const analysis = useAnalysis(buffers);
   const { permissionGranted, available, requestPermission } = useDeviceMotion(buffers.motion);
   const [statusIdx, setStatusIdx] = useState(0);
+  const [muted, setMuted] = useState(false);
+
+  // Unlock Web Audio on first user interaction
+  const handleFirstInteraction = useCallback(() => {
+    unlockAudio();
+    window.removeEventListener("pointerdown", handleFirstInteraction);
+    window.removeEventListener("keydown", handleFirstInteraction);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("pointerdown", handleFirstInteraction);
+    window.addEventListener("keydown", handleFirstInteraction);
+    return () => {
+      window.removeEventListener("pointerdown", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+    };
+  }, [handleFirstInteraction]);
 
   useEffect(() => {
     if (analysis.phase !== "scanning") return;
@@ -41,10 +59,21 @@ export default function ClientApp() {
           <span className="font-display text-lg font-bold tracking-tight text-cyber-text">AREYOUHUMAN</span>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded" style={{ backgroundColor: COLORS.cyan + "15", color: COLORS.cyan }}>v0.1</span>
         </div>
-        <a href="https://humansignprotocol.org" target="_blank" rel="noopener noreferrer"
-          className="text-[10px] font-mono tracking-[0.2em] hidden sm:block hover:brightness-125 transition-all" style={{ color: COLORS.cyan + "60" }}>
-          HUMANSIGN PROTOCOL
-        </a>
+        <div className="flex items-center gap-4">
+          {/* Mute toggle */}
+          <button
+            onClick={() => setMuted(!muted)}
+            className="text-xs font-mono px-2 py-1 rounded transition-all hover:brightness-125"
+            style={{ color: muted ? "#667788" : COLORS.cyan, backgroundColor: muted ? "#1A203040" : COLORS.cyan + "10" }}
+            title={muted ? "Unmute sounds" : "Mute sounds"}
+          >
+            {muted ? "🔇" : "🔊"}
+          </button>
+          <a href="https://humansignprotocol.org" target="_blank" rel="noopener noreferrer"
+            className="text-[10px] font-mono tracking-[0.2em] hidden sm:block hover:brightness-125 transition-all" style={{ color: COLORS.cyan + "60" }}>
+            HUMANSIGN PROTOCOL
+          </a>
+        </div>
       </header>
 
       {/* Hero */}
@@ -89,7 +118,7 @@ export default function ClientApp() {
         {/* Scan Again */}
         {analysis.phase === "complete" && (
           <div className="mt-4">
-            <button onClick={analysis.reset}
+            <button onClick={() => { analysis.reset(); if (!muted) feedbackReset(); }}
               className="px-5 py-2.5 rounded-lg font-mono text-sm font-bold transition-all hover:brightness-125 hover:scale-105 active:scale-95"
               style={{ backgroundColor: COLORS.cyan + "15", color: COLORS.cyan, border: `1px solid ${COLORS.cyan}40` }}>
               ↻ Scan Again
@@ -127,7 +156,7 @@ export default function ClientApp() {
       {/* Post-analysis */}
       {analysis.phase === "complete" && (
         <div className="flex flex-col gap-6 mb-8">
-          <ShareCard score={analysis.overallScore} channelScores={analysis.scores} signalData={analysis.signalData} />
+          <ShareCard score={analysis.overallScore} channelScores={analysis.scores} signalData={analysis.signalData} onShare={() => { if (!muted) feedbackClick(); }} />
           <BotComparison humanData={analysis.displayBuffers} />
         </div>
       )}
@@ -152,13 +181,13 @@ export default function ClientApp() {
         <section className="text-center mb-12">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a href="https://github.com/AreYouHuman/sdk" target="_blank" rel="noopener noreferrer"
-              onClick={() => trackEvent("cta_sdk")}
+              onClick={() => { trackEvent("cta_sdk"); if (!muted) feedbackClick(); }}
               className="px-6 py-3 rounded-lg font-mono text-sm font-bold transition-all hover:brightness-125"
               style={{ backgroundColor: COLORS.cyan + "20", color: COLORS.cyan, border: `1px solid ${COLORS.cyan}40` }}>
               Get the SDK →
             </a>
             <a href="https://humansignprotocol.org" target="_blank" rel="noopener noreferrer"
-              onClick={() => trackEvent("cta_protocol")}
+              onClick={() => { trackEvent("cta_protocol"); if (!muted) feedbackClick(); }}
               className="px-6 py-3 rounded-lg font-mono text-sm font-bold transition-all hover:brightness-125"
               style={{ backgroundColor: "#1A2030", color: "#E0E8F0", border: "1px solid #2A3040" }}>
               Read the Protocol

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,7 +32,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        {children}
+        {/* Plausible Analytics — replace areyouhuman.io with your actual domain */}
+        <Script
+          defer
+          data-domain="areyouhuman.io"
+          src="https://plausible.io/js/script.js"
+          strategy="afterInteractive"
+        />
+      </body>
     </html>
   );
 }
