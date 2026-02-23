@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://areyouhuman.io/sitemap.xml
