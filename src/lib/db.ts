@@ -164,7 +164,7 @@ export function completeSession(
 
 export function verifyToken(token: string): { valid: boolean; session?: Session } {
   // Find session by token
-  for (const session of sessions.values()) {
+  for (const session of Array.from(sessions.values())) {
     if (session.token === token) {
       const expired = new Date(session.expiresAt) < new Date();
       if (expired) {
