@@ -30,7 +30,7 @@ Individual signals can be faked. The physiological **correlation between all cha
 ## Getting Started
 
 ```bash
-git clone https://github.com/AreYouHuman/areyouhuman.io.git
+git clone https://github.com/aswinsasi/areyouhuman.io.git
 cd areyouhuman.io
 npm install
 npm run dev

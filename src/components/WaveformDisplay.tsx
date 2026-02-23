@@ -31,7 +31,7 @@ export default function WaveformDisplay({ data, color, label, icon, score, heigh
   }
 
   return (
-    <div className="relative rounded-lg border p-3 transition-all duration-300" style={{
+    <div className="relative rounded-lg border p-3 transition-all duration-300" role="region" aria-label={`${label}: ${Math.round(score * 100)}% signal strength`} style={{
       backgroundColor: "#0C1018",
       borderColor: active ? color + "40" : "#1A2030",
       borderLeftColor: active ? color : "#1A2030",
