@@ -86,11 +86,13 @@ export function createAPIKey(name: string, domain: string): APIKey {
 }
 
 export function getAPIKeyBySiteKey(siteKey: string): APIKey | null {
+  ensureDemoKey();
   const id = siteKeyIndex.get(siteKey);
   return id ? apiKeys.get(id) || null : null;
 }
 
 export function getAPIKeyBySecretKey(secretKey: string): APIKey | null {
+  ensureDemoKey();
   const id = secretKeyIndex.get(secretKey);
   return id ? apiKeys.get(id) || null : null;
 }
@@ -202,7 +204,28 @@ export function getStats() {
   };
 }
 
-// ---- Seed a demo API key on startup ----
-const demoKey = createAPIKey("Demo", "areyouhuman.io");
-export const DEMO_SITE_KEY = demoKey.siteKey;
-export const DEMO_SECRET_KEY = demoKey.secretKey;
+// ---- Deterministic demo key (same across all serverless instances) ----
+const DEMO_ID = "demo_areyouhuman_001";
+export const DEMO_SITE_KEY = "ayh_live_demo_areyouhuman_2026";
+export const DEMO_SECRET_KEY = "ayh_secret_demo_areyouhuman_2026";
+
+function ensureDemoKey(): void {
+  if (apiKeys.has(DEMO_ID)) return;
+  const key: APIKey = {
+    id: DEMO_ID,
+    siteKey: DEMO_SITE_KEY,
+    secretKey: DEMO_SECRET_KEY,
+    name: "Demo",
+    domain: "areyouhuman.io",
+    createdAt: new Date().toISOString(),
+    plan: "free",
+    usage: { month: new Date().toISOString().slice(0, 7), count: 0 },
+    rateLimit: 100,
+  };
+  apiKeys.set(DEMO_ID, key);
+  siteKeyIndex.set(key.siteKey, DEMO_ID);
+  secretKeyIndex.set(key.secretKey, DEMO_ID);
+}
+
+// Auto-init on import
+ensureDemoKey();
