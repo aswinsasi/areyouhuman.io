@@ -200,6 +200,12 @@ export default function ClientApp() {
 
       {/* Footer */}
       <footer className="text-center py-6 border-t" style={{ borderColor: "#1A2030" }}>
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <a href="/sdk" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: COLORS.cyan + "60" }}>SDK</a>
+          <a href="/privacy" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: "#667788" }}>Privacy</a>
+          <a href="/terms" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: "#667788" }}>Terms</a>
+          <a href="https://github.com/AreYouHuman/sdk" target="_blank" rel="noopener noreferrer" className="text-[11px] font-mono hover:brightness-125 transition-all" style={{ color: "#667788" }}>GitHub</a>
+        </div>
         <p className="text-[11px] font-mono text-cyber-muted">© 2026 HumanSign Protocol — Proving humanity through behavioral micro-signals</p>
       </footer>
     </main>
