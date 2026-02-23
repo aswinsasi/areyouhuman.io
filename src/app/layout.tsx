@@ -74,7 +74,7 @@ const orgJsonLd = {
   url: "https://areyouhuman.io",
   logo: "https://areyouhuman.io/favicon.svg",
   sameAs: [
-    "https://github.com/AreYouHuman",
+    "https://github.com/aswinsasi/areyouhuman.io",
     "https://www.npmjs.com/package/@areyouhuman/sdk",
   ],
 };
